@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feliz Ano Novo!</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      font-family: Arial, sans-serif;
+      background: #000;
+    }
+
+    h1 {
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #FFD700;
+    }
+
+    p {
+      font-size: 1.5em;
+      text-align: center;
+      color: #ffffff;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎆 Feliz Ano Novo para todos os meus inscritos! 🎆</h1>
+  <p>Obrigado por fazerem parte da minha jornada. Que 2025 seja incrível para todos nós!</p>
+  <p><strong>Atenciosamente:</strong> killerkingMD👑</p>
+
+  <audio id="firework-sound" src="firework-sound.mp3" preload="auto"></audio>
+
+  <script>
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    document.body.appendChild(canvas);
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const fireworks = [];
+    class Firework {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.particles = Array.from({ length: 50 }, () => ({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: (Math.random() - 0.5) * 5,
+          alpha: 1,
+        }));
+      }
+
+      update() {
+        this.particles.forEach((p) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= 0.02;
+        });
+      }
+
+      draw() {
+        this.particles.forEach((p) => {
+          if (p.alpha > 0) {
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+      }
+    }
+
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (Math.random() < 0.1) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.5;
+        const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        fireworks.push(new Firework(x, y, color));
+      }
+      fireworks.forEach((fw, index) => {
+        fw.update();
+        fw.draw();
+        if (fw.particles.every((p) => p.alpha <= 0)) {
+          fireworks.splice(index, 1);
+        }
+      });
+
+      requestAnimationFrame(loop);
+    };
+
+    const generateExplosion = (x, y) => {
+      const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      fireworks.push(new Firework(x, y, color));
+
+      const sound = document.getElementById('firework-sound');
+      sound.currentTime = 0; // Reiniciar o som para evitar sobreposição
+      sound.play();
+    };
+
+    window.onload = function() {
+      loop();
+
+      // Detectar clique para gerar explosões e desbloquear som
+      document.body.addEventListener('click', function(event) {
+        generateExplosion(event.pageX, event.pageY);
+      });
+
+      // Desbloquear som após interação
+      document.body.addEventListener('click', function() {
+        const sound = document.getElementById('firework-sound');
+        sound.play().catch(() => {
+          console.log('Som habilitado após interação do usuário.');
+        });
+      }, { once: true }); // Garante que a interação é registrada apenas uma vez
+    };
+  </script>
+</body>
+</html>
